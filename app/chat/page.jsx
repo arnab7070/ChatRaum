@@ -2,8 +2,8 @@
 import React, { useEffect, useState, useRef, Suspense, memo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { db } from "../../firebaseConfig";
-import { collection, addDoc, getDocs, onSnapshot, serverTimestamp, orderBy, query, updateDoc, doc, setDoc } from "firebase/firestore";
-import { Send, Check, CheckCheck, Users } from "lucide-react";
+import { collection, addDoc, getDocs, deleteDoc, onSnapshot, serverTimestamp, orderBy, query, updateDoc, doc, setDoc } from "firebase/firestore";
+import { Send, Check, CheckCheck, Users, Trash, Hourglass } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import CryptoJS from "crypto-js";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 // Memoized Message Bubble Component
 const MessageBubble = memo(({ message, currentUser, users }) => {
@@ -238,6 +239,8 @@ const ChatContent = () => {
   const router = useRouter();
   const roomCode = searchParams.get("roomCode");
   const [secretKey, setSecretKey] = useState(null); // State to hold the secret key
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -248,7 +251,6 @@ const ChatContent = () => {
   useEffect(() => {
     const userId = localStorage.getItem('chatUserId');
     const username = localStorage.getItem('chatUsername');
-
 
     if (!userId || !username || !roomCode) {
       router.push('/');
@@ -267,27 +269,40 @@ const ChatContent = () => {
     setCurrentUser(userData);
 
     const userDocRef = doc(db, `chatRooms/${roomCode}/users`, userId);
-    setDoc(userDocRef, userData, { merge: true });
 
-    presenceIntervalRef.current = setInterval(async () => {
-      try {
-        await updateDoc(userDocRef, {
-          lastSeen: serverTimestamp()
-        });
-      } catch (error) {
-        console.error("Error updating presence:", error);
-      }
-    }, 25000);
+    // Set initial user data (will create the document if it doesn't exist)
+    setDoc(userDocRef, userData, { merge: true })
+      .then(() => {
+        // Start presence updates AFTER initial setDoc 
+        presenceIntervalRef.current = setInterval(async () => {
+          try {
+            // Update presence (no need to check if it exists)
+            await updateDoc(userDocRef, {
+              lastSeen: serverTimestamp()
+            });
+          } catch (error) {
+            router.replace('/');
+            console.log("Error updating presence:", error);
+          }
+        }, 5000);
+      })
+      .catch((error) => {
+        console.log("Error setting initial user data:", error);
+      });
 
     return () => {
       if (presenceIntervalRef.current) {
         clearInterval(presenceIntervalRef.current);
       }
+      // Update last seen one last time on unmount
       updateDoc(userDocRef, {
         lastSeen: serverTimestamp()
+      }).catch((error) => {
+        console.log("Error updating last seen on unmount:", error);
       });
     };
   }, [roomCode]);
+
 
   useEffect(() => {
     if (roomCode && currentUser) {
@@ -357,6 +372,37 @@ const ChatContent = () => {
     }
   };
 
+  const handleDeleteRoom = async () => {
+    setOpenDialog(false);
+    setIsDeleting(true);
+
+    try {
+      // 1. Delete Messages (using Promise.all for efficiency)
+      const messagesQuerySnapshot = await getDocs(collection(db, `chatRooms/${roomCode}/messages`));
+      await Promise.all(messagesQuerySnapshot.docs.map(async (messageDoc) => {
+        await deleteDoc(messageDoc.ref);
+      }));
+
+      // 2. Delete Users (using Promise.all for efficiency)
+      const usersQuerySnapshot = await getDocs(collection(db, `chatRooms/${roomCode}/users`));
+      await Promise.all(usersQuerySnapshot.docs.map(async (userDoc) => {
+        await deleteDoc(userDoc.ref);
+      }));
+
+      // 3. Delete the Room Document 
+      await deleteDoc(doc(db, "chatRooms", roomCode));
+
+      // Navigate to the home page
+      router.push('/');
+
+    } catch (error) {
+      console.error("Error deleting room:", error);
+      // Handle error, perhaps show a user-friendly message
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   if (!currentUser) return null;
 
   return (
@@ -378,6 +424,37 @@ const ChatContent = () => {
                 <div className="mt-4">
                   <UsersList users={users} />
                 </div>
+                {/* Delete Room Button */}
+                <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="destructive"
+                      size="lg"
+                      className="mt-6 w-full"
+                      disabled={isDeleting}
+                    >
+                      {/* {isDeleting && <span className="mr-2">Deleting...</span>} */}
+                      {isDeleting ? <Hourglass className="w-4 h-4 mr-2" /> : <Trash className="w-4 h-4 mr-2" />}
+                      {isDeleting ? 'Deleting...' : 'Delete Room'}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Delete Room</DialogTitle>
+                    </DialogHeader>
+                    <p>Are you sure you want to delete this room? This action cannot be undone.</p>
+                    <div className="mt-4 flex justify-end space-x-2">
+                      <Button variant="outline" onClick={() => setOpenDialog(false)}>Cancel</Button>
+                      <Button
+                        variant="destructive"
+                        onClick={handleDeleteRoom}
+                        disabled={isDeleting} // Disable if deleting
+                      >
+                        {isDeleting ? 'Deleting...' : 'Confirm Delete'}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </SheetContent>
             </Sheet>
           </div>

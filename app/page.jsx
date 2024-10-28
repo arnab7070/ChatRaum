@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { db } from "../firebaseConfig";
 import { getDoc, doc, setDoc, onSnapshot, serverTimestamp, orderBy, query } from "firebase/firestore";
 import { motion } from "framer-motion";
-import { Users, MessageSquare, UserPlus, LogIn } from "lucide-react";
+import { Users, MessageSquare, UserPlus, LogIn, Hourglass } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ export default function Home() {
   const [roomCode, setRoomCode] = useState("");
   const [username, setUsername] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false);
   const router = useRouter();
 
@@ -40,6 +41,7 @@ export default function Home() {
   const saveUserData = async (roomCode) => {
     if (!username) {
       setError("Please enter a username");
+      setLoading(false);
       return false;
     }
 
@@ -63,27 +65,39 @@ export default function Home() {
     localStorage.setItem('chatUserColor', userColor);
 
     // Save to Firestore
-    await setDoc(doc(db, `chatRooms/${roomCode}/users`, userId), userData);
+    try {
+      if(roomCode) await setDoc(doc(db, `chatRooms/${roomCode}/users`, userId), userData);
+    } catch (error) {
+      console.log(error)
+    }
 
     return true;
   };
 
   const createRoom = async () => {
+    setLoading(true);
     const newRoomCode = generateRoomCode();
-    if (await saveUserData(newRoomCode)) {
-      // Create room document
-      await setDoc(doc(db, 'chatRooms', newRoomCode), {
-        createdAt: serverTimestamp(),
-        createdBy: username
-      });
-
-      router.push(`/chat?roomCode=${newRoomCode}`);
+    try {
+      if (await saveUserData(newRoomCode)) {
+        // Create room document
+        await setDoc(doc(db, 'chatRooms', newRoomCode), {
+          createdAt: serverTimestamp(),
+          createdBy: username
+        });
+        setLoading(false);
+        router.push(`/chat?roomCode=${newRoomCode}`);
+      }
+    } catch (error) {
+      console.log(error)
     }
   };
 
   const joinRoom = async () => {
+    setLoading(true);
+
     if (!roomCode.trim()) {
       setError("Please enter a room code");
+      setLoading(false);
       return;
     }
 
@@ -94,10 +108,12 @@ export default function Home() {
     if (!roomSnap.exists()) {
       setError("Room not found");
       setIsJoinDialogOpen(false);
+      setLoading(false);
       return;
     }
 
     if (await saveUserData(roomCode)) {
+      setLoading(false);
       router.push(`/chat?roomCode=${roomCode}`);
     }
   };
@@ -182,9 +198,10 @@ export default function Home() {
               <Button
                 onClick={createRoom}
                 className="w-full"
+                disabled={loading}
               >
-                <UserPlus className="w-4 h-4 mr-2" />
-                Create New Room
+                {loading ? <Hourglass className="w-4 h-4 mr-2" /> : <UserPlus className="w-4 h-4 mr-2" />}
+                {loading ? 'Creating your room...' : 'Create New Room'}
               </Button>
             </motion.div>
           </CardContent>
@@ -207,9 +224,9 @@ export default function Home() {
                   onKeyDown={handleKeyDown}
                 />
               </div>
-              <Button onClick={joinRoom} className="w-full">
-                <LogIn className="w-4 h-4 mr-2" />
-                Join Room
+              <Button onClick={joinRoom} disabled={roomCode.length != 6 || loading} className="w-full">
+                {loading ? <Hourglass className="w-4 h-4 mr-2" /> :<LogIn className="w-4 h-4 mr-2" />}
+                {loading ? 'Please wait...' : 'Join Room'}
               </Button>
             </div>
           </DialogContent>
