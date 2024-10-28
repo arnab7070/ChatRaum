@@ -1,0 +1,17 @@
+{
+    "name": "ChatRaum",
+    "short_name": "ChatRaum",
+    "description": "Connect and chat in real-time with a modern, secure messaging experience.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#000000",
+    "icons": [
+      {
+        "src": "/icons.png",
+        "sizes": "144x144",
+        "type": "image/png"
+      }
+    ]
+}
+  
