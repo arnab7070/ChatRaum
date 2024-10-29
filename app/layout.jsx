@@ -1,5 +1,6 @@
 import { Inter, Open_Sans, DM_Sans } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
 
 // Primary font - clean, modern, highly legible
 const inter = Inter({
@@ -34,11 +35,18 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className="h-full">
+    <html lang="en" className="h-full" suppressHydrationWarning>
       <body
         className={`${inter.variable} ${openSans.variable} ${dmSans.variable} font-sans min-h-full bg-background antialiased`}
       >
-        {children}
+        <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

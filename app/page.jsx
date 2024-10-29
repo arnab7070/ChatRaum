@@ -11,10 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import useWindowSize from 'react-use/lib/useWindowSize'
+import Confetti from 'react-confetti'
 
 // Generate a random color for user
 const getRandomColor = () => {
-  const colors = ['red', 'blue', 'green', 'purple', 'orange', 'pink', 'teal'];
+  const colors = ['green', 'purple', 'yellow', 'orange', 'pink', 'teal'];
   return colors[Math.floor(Math.random() * colors.length)];
 };
 
@@ -25,6 +27,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false);
   const router = useRouter();
+  const { width, height } = useWindowSize()
 
   // Check for existing user data in localStorage
   useEffect(() => {
@@ -76,6 +79,7 @@ export default function Home() {
 
   const createRoom = async () => {
     setLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 3000));
     const newRoomCode = generateRoomCode();
     try {
       if (await saveUserData(newRoomCode)) {
@@ -94,7 +98,7 @@ export default function Home() {
 
   const joinRoom = async () => {
     setLoading(true);
-
+    await new Promise(resolve => setTimeout(resolve, 3000));
     if (!roomCode.trim()) {
       setError("Please enter a room code");
       setLoading(false);
@@ -143,6 +147,14 @@ export default function Home() {
 
   return (
     <div className="min-h-full flex items-center justify-center p-4">
+      {loading && (
+        <Confetti
+          width={width}
+          height={height}
+          numberOfPieces={200}
+          recycle={false}
+        />
+      )}
       <motion.div
         variants={containerVariants}
         initial="hidden"

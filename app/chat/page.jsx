@@ -13,11 +13,22 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import CryptoJS from "crypto-js";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator"
+import { ModeToggle } from "@/components/toggle-theme";
 
 // Memoized Message Bubble Component
 const MessageBubble = memo(({ message, currentUser, users }) => {
+  const colorsMap = {
+    green: 'rgb(22, 163, 74)',    // Tailwind bg-green-600
+    purple: 'rgb(147, 51, 234)',  // Tailwind bg-purple-600
+    yellow: 'rgb(215, 145, 0)',   // Tailwind bg-yellow-600
+    orange: 'rgb(234, 88, 12)',   // Tailwind bg-orange-600
+    pink: 'rgb(219, 39, 119)',    // Tailwind bg-pink-600
+    teal: 'rgb(13, 148, 136)',    // Tailwind bg-teal-600
+  };
   const isCurrentUser = message.userId === currentUser?.userId;
   const sender = users[message.userId] || { username: 'Unknown User' };
+  const backgroundColor = colorsMap[sender.color] || 'gray';
 
   const bubbleVariants = {
     initial: {
@@ -53,19 +64,18 @@ const MessageBubble = memo(({ message, currentUser, users }) => {
               <AvatarImage src={sender.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${message.userId}`} />
               <AvatarFallback>{sender.username?.substring(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
-            <span className="text-xs text-gray-500 mt-1">{sender.username}</span>
+            <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 mt-1">{sender.username}</span>
           </div>
         )}
         <div className={`flex flex-col ${isCurrentUser ? 'items-end' : 'items-start'}`}>
           <div
-            className={`px-4 py-2 rounded-2xl max-w-md break-words ${isCurrentUser
-              ? 'bg-blue-500 text-white rounded-br-sm'
-              : 'bg-gray-100 text-gray-800 rounded-bl-sm'
+            style={{ backgroundColor }}
+            className={`px-4 py-2 rounded-2xl max-w-md break-words ${isCurrentUser ? 'bg-blue-600 text-white rounded-br-sm' : 'text-white rounded-bl-sm'
               }`}
           >
             {message.text}
           </div>
-          <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+          <div className="flex items-center gap-1 mt-1 text-xs text-gray-500 dark:text-gray-300">
             {message.timestamp?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             {isCurrentUser && (
               <span className="ml-1">
@@ -204,16 +214,16 @@ const ChatInput = memo(({ onSendMessage, disabled }) => {
             onBlur={maintainFocus}
             placeholder="Type your message..."
             className="flex-1"
-            autoComplete="off"
+            autoComplete="on"
             autoCorrect="on"
-            spellCheck="false"
+            spellCheck="true"
           // disabled={disabled}
           />
           <Button
             type="submit"
             size="icon"
             className="w-20 h-10"
-            disabled={disabled}
+            disabled={disabled || !message}
             onMouseDown={(e) => e.preventDefault()} // Prevent focus loss on button click
           >
             Send<Send className="w-6 h-6" />
@@ -406,57 +416,61 @@ const ChatContent = () => {
   if (!currentUser) return null;
 
   return (
-    <div className="h-screen flex">
+    <div className="h-screen flex items-center justify-center lg:p-4 md:p-0">
       <Card className="flex-1 flex flex-col relative h-full max-w-4xl">
-        <div className="sticky top-0 z-10 bg-white border-b">
+        <div className="sticky top-0 z-10 bg-white dark:bg-black border-b">
           <div className="p-4 flex items-center justify-between">
             <h3 className="text-xl font-semibold">Chat Room: {roomCode}</h3>
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <Users className="w-4 h-4" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent>
-                <SheetHeader>
-                  <SheetTitle>Room Participants</SheetTitle>
-                </SheetHeader>
-                <div className="mt-4">
-                  <UsersList users={users} />
-                </div>
-                {/* Delete Room Button */}
-                <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-                  <DialogTrigger asChild>
-                    <Button
-                      variant="destructive"
-                      size="lg"
-                      className="mt-6 w-full"
-                      disabled={isDeleting}
-                    >
-                      {/* {isDeleting && <span className="mr-2">Deleting...</span>} */}
-                      {isDeleting ? <Hourglass className="w-4 h-4 mr-2" /> : <Trash className="w-4 h-4 mr-2" />}
-                      {isDeleting ? 'Deleting...' : 'Delete Room'}
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Delete Room</DialogTitle>
-                    </DialogHeader>
-                    <p>Are you sure you want to delete this room? This action cannot be undone.</p>
-                    <div className="mt-4 flex justify-end space-x-2">
-                      <Button variant="outline" onClick={() => setOpenDialog(false)}>Cancel</Button>
+            <div className="flex flex-row-reverse gap-x-2">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <Users className="w-4 h-4" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent>
+                  <SheetHeader>
+                    <SheetTitle>Room Participants</SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-4">
+                    <UsersList users={users} />
+                  </div>
+                  {/* Delete Room Button */}
+                  <Separator className="mt-5" />
+                  <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+                    <DialogTrigger asChild>
                       <Button
                         variant="destructive"
-                        onClick={handleDeleteRoom}
-                        disabled={isDeleting} // Disable if deleting
+                        size="lg"
+                        className="mt-6 w-full"
+                        disabled={isDeleting}
                       >
-                        {isDeleting ? 'Deleting...' : 'Confirm Delete'}
+                        {/* {isDeleting && <span className="mr-2">Deleting...</span>} */}
+                        {isDeleting ? <Hourglass className="w-4 h-4 mr-2" /> : <Trash className="w-4 h-4 mr-2" />}
+                        {isDeleting ? 'Deleting...' : 'Delete Room'}
                       </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </SheetContent>
-            </Sheet>
+                    </DialogTrigger>
+                    <DialogContent className="w-11/12">
+                      <DialogHeader>
+                        <DialogTitle>Delete Room</DialogTitle>
+                      </DialogHeader>
+                      <p>Are you sure you want to delete this room? This action cannot be undone.</p>
+                      <div className="mt-4 flex justify-end space-x-2">
+                        <Button variant="outline" onClick={() => setOpenDialog(false)}>Cancel</Button>
+                        <Button
+                          variant="destructive"
+                          onClick={handleDeleteRoom}
+                          disabled={isDeleting} // Disable if deleting
+                        >
+                          {isDeleting ? 'Deleting...' : 'Confirm Delete'}
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </SheetContent>
+              </Sheet>
+              <ModeToggle />
+            </div>
           </div>
         </div>
 
