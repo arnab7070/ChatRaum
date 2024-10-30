@@ -142,7 +142,7 @@ export default function Home() {
   };
 
   const handleKeyDown = (event) => {
-    if (event.key === 'Enter') {
+    if (event.key === 'Enter' && roomCode.length === 6) {
       joinRoom();
     }
   };
