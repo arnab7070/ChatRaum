@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# ChatRaum
+
+ChatRaum is a real-time chat application that allows users to create and join chat rooms, send encrypted messages, view online/offline status of other participants, and delete the entire chat room. It's built using React, Next.js, Tailwind CSS, and Firebase.
+
+## Features
+
+- **Real-time Chat**: Users can send and receive messages in real-time using firebase firestore.
+- **Message Encryption**: All messages are encrypted using AES encryption to ensure privacy.
+- **User Presence**: Users can see the online/offline status of other participants in the chat room.
+- **Room Management**: Users can create new chat rooms and delete existing ones.
+- **Responsive Design**: The application is designed to work seamlessly on both desktop and mobile devices.
+- **Progressive Web App (PWA)**: ChatRaum is a PWA, which means it can be installed on the user's device and used offline.
+
+## Tech Stack
+
+- **Front-end**: React, Next.js, Tailwind CSS, Lucide Icons, Framer Motion
+- **Back-end**: Firebase (Firestore, Hosting)
+- **Encryption**: CryptoJS
 
 ## Getting Started
 
-First, run the development server:
+1. Clone the repository:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+   ```
+   git clone https://github.com/chatroom-app/chatroom.git
+   ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install the dependencies:
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+   ```
+   cd chatroom
+   npm install
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. Configure Firebase:
+   - Create a new Firebase project in the Firebase Console.
+   - Enable Email/Password authentication in the "Authentication" section.
+   - Create a new Firestore database in the "Database" section.
+   - Copy the Firebase configuration details and replace them in the `firebaseConfig.js` file.
 
-## Learn More
+4. Run the development server:
 
-To learn more about Next.js, take a look at the following resources:
+   ```
+   npm run dev
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+   The application will be available at `http://localhost:3000`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deployment
 
-## Deploy on Vercel
+ChatRaum is deployed on Vercel at [chatraum.vercel.app](https://chatraum.vercel.app/). The deployment process is automated through Vercel's integration with the GitHub repository.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## PWA Functionality
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+ChatRaum is a Progressive Web App (PWA), which means it can be installed on the user's device and used offline. To install the app:
+
+1. Open the application in your web browser.
+2. Click on the "+" or "Install" button in your browser's address bar.
+3. Follow the instructions to install the app on your device.
+
+Once installed, the app can be accessed and used even when the device is offline.
+
+## Contributing
+
+We welcome contributions to the ChatRaum project. If you find any issues or have suggestions for improvements, please feel free to open a new issue or submit a pull request.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
