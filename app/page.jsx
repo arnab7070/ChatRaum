@@ -13,7 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import useWindowSize from 'react-use/lib/useWindowSize'
 import Confetti from 'react-confetti'
-
+import { ModeToggle } from "@/components/toggle-theme";
 // Generate a random color for user
 const getRandomColor = () => {
   const colors = ['green', 'purple', 'yellow', 'orange', 'pink', 'teal'];
@@ -25,6 +25,7 @@ export default function Home() {
   const [username, setUsername] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loading1, setLoading1] = useState(false); // for creating room
   const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false);
   const router = useRouter();
   const { width, height } = useWindowSize()
@@ -45,6 +46,7 @@ export default function Home() {
     if (!username) {
       setError("Please enter a username");
       setLoading(false);
+      if(isJoinDialogOpen) setIsJoinDialogOpen(false);
       return false;
     }
 
@@ -78,7 +80,7 @@ export default function Home() {
   };
 
   const createRoom = async () => {
-    setLoading(true);
+    setLoading1(true);
     await new Promise(resolve => setTimeout(resolve, 3000));
     const newRoomCode = generateRoomCode();
     try {
@@ -88,7 +90,7 @@ export default function Home() {
           createdAt: serverTimestamp(),
           createdBy: username
         });
-        setLoading(false);
+        setLoading1(false);
         router.push(`/chat?roomCode=${newRoomCode}`);
       }
     } catch (error) {
@@ -98,24 +100,24 @@ export default function Home() {
 
   const joinRoom = async () => {
     setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 3000));
     if (!roomCode.trim()) {
       setError("Please enter a room code");
       setLoading(false);
       return;
     }
-
+    
     // Check if room exists
     const roomRef = doc(db, 'chatRooms', roomCode);
     const roomSnap = await getDoc(roomRef);
-
+    
     if (!roomSnap.exists()) {
       setError("Room not found");
       setIsJoinDialogOpen(false);
       setLoading(false);
       return;
     }
-
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    
     if (await saveUserData(roomCode)) {
       setLoading(false);
       router.push(`/chat?roomCode=${roomCode}`);
@@ -146,12 +148,15 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-full flex items-center justify-center p-4">
-      {loading && (
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="fixed top-4 right-4">
+        <ModeToggle />
+      </div>
+      {(loading || loading1) && (
         <Confetti
           width={width}
           height={height}
-          numberOfPieces={200}
+          numberOfPieces={300}
           recycle={false}
         />
       )}
@@ -210,10 +215,10 @@ export default function Home() {
               <Button
                 onClick={createRoom}
                 className="w-full"
-                disabled={loading}
+                disabled={loading1}
               >
-                {loading ? <Hourglass className="w-4 h-4 mr-2" /> : <UserPlus className="w-4 h-4 mr-2" />}
-                {loading ? 'Creating your room...' : 'Create New Room'}
+                {loading1 ? <Hourglass className="w-4 h-4 mr-2" /> : <UserPlus className="w-4 h-4 mr-2" />}
+                {loading1 ? 'Creating your room...' : 'Create New Room'}
               </Button>
             </motion.div>
           </CardContent>
