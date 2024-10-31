@@ -164,8 +164,8 @@ export const ChatContent = () => {
     if (!currentUser) return null;
 
     return (
-        <div className="h-screen flex items-center justify-center lg:p-4 md:p-0">
-            <Card className="flex-1 flex flex-col relative h-full max-w-4xl">
+        <div className="sm:h-[90vh] md:h-screen flex items-center justify-center lg:p-4 md:p-0">
+            <Card className="flex-1 flex flex-col relative h-screen max-w-4xl">
                 <ChatHeader
                     roomCode={roomCode}
                     users={users}

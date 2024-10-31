@@ -1,30 +1,43 @@
 'use client'
-import { memo, useRef, useState } from "react";
+import { memo, useRef, useState, useCallback } from "react";
 import { SendHorizonal } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea"
-
+import { Textarea } from "@/components/ui/textarea";
 
 export const ChatInput = memo(({ onSendMessage, disabled }) => {
     const [message, setMessage] = useState("");
     const inputRef = useRef(null);
+    const isSubmitting = useRef(false);
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = useCallback(async (e) => {
         e.preventDefault();
-        if (message.trim() && !disabled) {
-            const messageToSend = message.trim();
-            setMessage("");
-            await onSendMessage(messageToSend);
+        if (message.trim() && !disabled && !isSubmitting.current) {
+            try {
+                isSubmitting.current = true;
+                const messageToSend = message.trim();
+                setMessage("");
+                await onSendMessage(messageToSend);
+            } finally {
+                isSubmitting.current = false;
+            }
         }
-    };
+    }, [message, disabled, onSendMessage]);
 
-    const handleKeyPress = (e) => {
+    const handleKeyPress = useCallback((e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             handleSubmit(e);
         }
-    };
+    }, [handleSubmit]);
+
+    const handleChange = useCallback((e) => {
+        const textarea = e.target;
+        setMessage(textarea.value);
+        
+        // Auto-resize textarea
+        textarea.style.height = 'auto';
+        textarea.style.height = `${Math.min(textarea.scrollHeight, 200)}px`;
+    }, []);
 
     return (
         <div className="flex-none border-t bg-background">
@@ -33,10 +46,10 @@ export const ChatInput = memo(({ onSendMessage, disabled }) => {
                     <Textarea
                         ref={inputRef}
                         value={message}
-                        onChange={(e) => setMessage(e.target.value)}
+                        onChange={handleChange}
                         onKeyPress={handleKeyPress}
                         placeholder="Type your message..."
-                        className="flex-1"
+                        className="flex-1 min-h-[40px] max-h-[200px] resize-none"
                         autoComplete="on"
                         autoCorrect="on"
                         spellCheck="true"
@@ -45,15 +58,17 @@ export const ChatInput = memo(({ onSendMessage, disabled }) => {
                         <Button
                             type="submit"
                             size="icon"
-                            className="rounded-full ml-2 px-4 py-2 h-[90%] w-[90%]"
-                            disabled={disabled || !message}
+                            className="rounded-full h-12 w-12 flex-shrink-0"
+                            disabled={disabled || !message.trim()}
                             onMouseDown={(e) => e.preventDefault()}
                         >
-                            <SendHorizonal style={{ width: '30px', height: '30px' }} />
+                            <SendHorizonal className="h-[30px] w-[30px]" />
                         </Button>
                     </div>
                 </div>
             </form>
         </div>
     );
+}, (prevProps, nextProps) => {
+    return prevProps.disabled === nextProps.disabled;
 });
