@@ -30,7 +30,7 @@ export const ChatHeader = ({ roomCode, users, onDeleteRoom, isDeleting }) => (
             <DeleteRoomDialog onDelete={onDeleteRoom} isDeleting={isDeleting} />
           </SheetContent>
         </Sheet>
-        <VideoCallButton />
+        <VideoCallButton roomId={roomCode} />
         <ModeToggle />
       </div>
     </div>
