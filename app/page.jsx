@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import useWindowSize from 'react-use/lib/useWindowSize'
 import Confetti from 'react-confetti'
 import { ModeToggle } from "@/components/toggle-theme";
+import { UserProfileImage } from "./components/UserProfileImage";
 // Generate a random color for user
 const getRandomColor = () => {
   const colors = ['green', 'purple', 'yellow', 'orange', 'pink', 'teal'];
@@ -61,7 +62,7 @@ export default function Home() {
       username,
       userId,
       color: userColor,
-      avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
+      avatarUrl: localStorage.getItem('chatUserImage')||`https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
       lastSeen: serverTimestamp()
     };
 
@@ -194,11 +195,8 @@ export default function Home() {
                   className="flex-1"
                 />
                 {username && (
-                  <Avatar>
-                    <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`} />
-                    <AvatarFallback>{username.substring(0, 2).toUpperCase()}</AvatarFallback>
-                  </Avatar>
-                )}
+                <UserProfileImage username={username} userId={localStorage.getItem('chatUserId') || ''} />
+              )}
               </div>
             </motion.div>
 

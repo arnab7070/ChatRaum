@@ -1,5 +1,5 @@
 'use client'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Trash, Hourglass } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,7 @@ export const DeleteRoomDialog = ({ onDelete, isDeleting }) => {
             <DialogContent className="w-11/12">
                 <DialogHeader>
                     <DialogTitle>Delete Room</DialogTitle>
+                    <DialogDescription></DialogDescription>
                 </DialogHeader>
                 <p>Are you sure you want to delete this room? This action cannot be undone.</p>
                 <div className="mt-4 flex justify-end space-x-2">

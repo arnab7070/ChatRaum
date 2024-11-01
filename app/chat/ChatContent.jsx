@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { db } from "../../firebaseConfig";
 import { collection, addDoc, getDocs, deleteDoc, onSnapshot, serverTimestamp, orderBy, query, updateDoc, doc, setDoc } from "firebase/firestore";
@@ -8,19 +8,50 @@ import { Card } from "@/components/ui/card";
 import { ChatHeader } from "./ChatHeader";
 import { MessagesList } from "./MessagesList";
 import { ChatInput } from "./ChatInput";
+import { useMessageSender } from "./hooks/useMessageSender";
 
 export const ChatContent = () => {
     const [messages, setMessages] = useState([]);
     const [currentUser, setCurrentUser] = useState(null);
     const [users, setUsers] = useState({});
-    const [isSending, setIsSending] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isInitialLoad, setIsInitialLoad] = useState(true);
+    
     const scrollAreaRef = useRef(null);
     const presenceIntervalRef = useRef(null);
     const searchParams = useSearchParams();
     const router = useRouter();
     const roomCode = searchParams.get("roomCode");
-    const [secretKey, setSecretKey] = useState(null);
+
+    const { sendMessage, isSending } = useMessageSender(roomCode, currentUser);
+
+    const scrollToBottom = useCallback((smooth = true) => {
+        if (scrollAreaRef.current) {
+            const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+            if (scrollContainer) {
+                scrollContainer.scrollTo({
+                    top: scrollContainer.scrollHeight,
+                    behavior: smooth ? 'smooth' : 'auto'
+                });
+            }
+        }
+    }, []);
+
+    // Effect for initial load scroll
+    useEffect(() => {
+        if (messages.length > 0 && isInitialLoad) {
+            scrollToBottom(false); // Use instant scroll for initial load
+            setIsInitialLoad(false);
+        }
+    }, [messages, isInitialLoad, scrollToBottom]);
+
+    // Effect for subsequent message updates
+    useEffect(() => {
+        if (!isInitialLoad && messages.length > 0) {
+            scrollToBottom(true); // Use smooth scroll for updates
+        }
+    }, [messages, isInitialLoad, scrollToBottom]);
+
     useEffect(() => {
         const userId = localStorage.getItem('chatUserId');
         const username = localStorage.getItem('chatUsername');
@@ -30,12 +61,10 @@ export const ChatContent = () => {
             return;
         }
 
-        setSecretKey(userId);
-
         const userData = {
             userId,
             username,
-            avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
+            avatarUrl: localStorage.getItem('chatUserImage')||`https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
             lastSeen: serverTimestamp()
         };
 
@@ -89,7 +118,6 @@ export const ChatContent = () => {
                     return { id: doc.id, ...data, text: decryptedMessage };
                 });
                 setMessages(liveMessages);
-                scrollToBottom();
             });
 
             const usersRef = collection(db, `chatRooms/${roomCode}/users`);
@@ -108,38 +136,16 @@ export const ChatContent = () => {
         }
     }, [roomCode, currentUser]);
 
-    const scrollToBottom = () => {
-        if (scrollAreaRef.current) {
-            const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-            scrollContainer.scrollTo({
-                top: scrollContainer.scrollHeight,
-                behavior: 'smooth'
-            });
-        }
-    };
-
-    const handleSendMessage = async (messageText) => {
-        if (!roomCode || !currentUser || isSending) return;
-
-        setIsSending(true);
-        const encryptedMessage = CryptoJS.AES.encrypt(messageText, secretKey).toString();
+    const handleSendMessage = useCallback(async (messageText) => {
         try {
-            await addDoc(collection(db, `chatRooms/${roomCode}/messages`), {
-                text: encryptedMessage,
-                timestamp: serverTimestamp(),
-                userId: currentUser.userId,
-                username: currentUser.username,
-                read: false
-            });
-            scrollToBottom();
+            await sendMessage(messageText);
+            scrollToBottom(true);
         } catch (error) {
             console.error("Error sending message:", error);
-        } finally {
-            setIsSending(false);
         }
-    };
+    }, [sendMessage, scrollToBottom]);
 
-    const handleDeleteRoom = async () => {
+    const handleDeleteRoom = useCallback(async () => {
         setIsDeleting(true);
         try {
             const messagesQuerySnapshot = await getDocs(collection(db, `chatRooms/${roomCode}/messages`));
@@ -159,7 +165,7 @@ export const ChatContent = () => {
         } finally {
             setIsDeleting(false);
         }
-    };
+    }, [roomCode, router]);
 
     if (!currentUser) return null;
 
