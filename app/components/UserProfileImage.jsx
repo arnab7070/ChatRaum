@@ -24,6 +24,9 @@ export const UserProfileImage = ({ username, userId }) => {
   // Fetch the image from local storage if it exists
   useEffect(() => {
     const savedImageUrl = localStorage.getItem("chatUserImage");
+    if(!savedImageUrl) {
+      localStorage.setItem('chatUserImage', `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`);
+    }
     if (savedImageUrl) {
       setImageUrl(savedImageUrl);
     }

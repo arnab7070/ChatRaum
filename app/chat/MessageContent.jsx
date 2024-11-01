@@ -38,7 +38,7 @@ const MessageContent = ({ message, isCurrentUser, backgroundColor }) => {
                 />
               </div>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[50%] max-h-[90%] w-5/6 flex items-center justify-center p-1 bg-white">
+            <DialogContent className="md:max-w-[50%] md:h-5/6 md:max-h-fit md:w-fit w-11/12 flex items-center justify-center p-1 bg-white">
               <DialogTitle className="sr-only">Image Preview</DialogTitle>
               <img
                 src={message.text}

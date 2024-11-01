@@ -84,10 +84,10 @@ export const ImageUploader = ({ onSendMessage }) => {
       <input
         type="file"
         accept="image/*"
-        capture="environment"
         onChange={handleCameraCapture}
         ref={cameraInputRef}
         style={{ display: 'none' }}
+        capture="environment"
       />
       
       <DropdownMenu>

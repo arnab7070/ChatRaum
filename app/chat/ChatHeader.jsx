@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Users } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ModeToggle } from "@/components/toggle-theme";
+import VideoCallButton from "./VideoCallButton";
 import { DeleteRoomDialog } from "./DeleteRoomDialog";
 import { UsersList } from "./UsersList";
 import { Separator } from "@/components/ui/separator";
@@ -29,6 +30,7 @@ export const ChatHeader = ({ roomCode, users, onDeleteRoom, isDeleting }) => (
             <DeleteRoomDialog onDelete={onDeleteRoom} isDeleting={isDeleting} />
           </SheetContent>
         </Sheet>
+        <VideoCallButton />
         <ModeToggle />
       </div>
     </div>
