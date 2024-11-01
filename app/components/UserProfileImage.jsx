@@ -52,7 +52,7 @@ export const UserProfileImage = ({ username, userId }) => {
       });
 
       // Create a storage reference
-      const storageRef = ref(storage, `users/${userId}/profile.jpg`);
+      const storageRef = ref(storage, `users/${userId ? userId : 'temporary'}/profile.jpg`);
       
       // Upload the compressed image
       await uploadBytes(storageRef, compressedFile);
