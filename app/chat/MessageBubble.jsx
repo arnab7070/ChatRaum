@@ -48,7 +48,7 @@ export const MessageBubble = memo(({ message, currentUser, users }) => {
         {!isCurrentUser && (
           <div className="flex flex-col items-center">
             <Avatar className="w-8 h-8">
-              <AvatarImage src={sender.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${message.userId}`} />
+              <AvatarImage src={sender.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${message.userId}`} className="w-full h-full object-cover scale-110" />
               <AvatarFallback>{sender.username?.substring(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
             <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 mt-1">{sender.username}</span>

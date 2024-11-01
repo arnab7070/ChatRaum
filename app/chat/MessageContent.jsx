@@ -5,11 +5,14 @@ import {
   DialogContent,
   DialogTrigger,
   DialogTitle,
+  DialogFooter,
+  DialogClose
 } from "@/components/ui/dialog";
+import { Button } from '@/components/ui/button';
 
 const isImageUrl = (url) => {
   return (
-    /\.(jpeg|jpg|gif|png|webp|svg)$/i.test(url) || 
+    /\.(jpeg|jpg|gif|png|webp|svg)$/i.test(url) ||
     url.includes("firebasestorage.googleapis.com")
   );
 };
@@ -35,12 +38,12 @@ const MessageContent = ({ message, isCurrentUser, backgroundColor }) => {
                 />
               </div>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[50%] max-h-[90%] w-full flex items-center justify-center p-2 gap-0">
+            <DialogContent className="sm:max-w-[50%] max-h-[90%] w-5/6 flex items-center justify-center p-1 bg-white">
               <DialogTitle className="sr-only">Image Preview</DialogTitle>
               <img
                 src={message.text}
                 alt="Full screen image"
-                className="max-w-full max-h-full object-cover"
+                className="max-w-full max-h-full object-cover rounded-md"
               />
             </DialogContent>
           </Dialog>
