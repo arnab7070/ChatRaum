@@ -12,7 +12,7 @@ import {
 
 const storage = getStorage();
 
-export const ImageUploader = ({ onSendMessage }) => {
+export const ImageUploader = ({ onSendMessage, roomCode }) => {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
@@ -31,7 +31,7 @@ export const ImageUploader = ({ onSendMessage }) => {
       });
 
       // Create a storage reference
-      const storageRef = ref(storage, `images/${Date.now()}_${compressedFile.name}`);
+      const storageRef = ref(storage, `images/${roomCode}/${Date.now()}_${compressedFile.name}`);
       
       // Upload the compressed image
       await uploadBytes(storageRef, compressedFile);

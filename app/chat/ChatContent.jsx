@@ -9,6 +9,7 @@ import { ChatHeader } from "./ChatHeader";
 import { MessagesList } from "./MessagesList";
 import { ChatInput } from "./ChatInput";
 import { useMessageSender } from "./hooks/useMessageSender";
+import { getStorage, ref, listAll, deleteObject } from "firebase/storage";
 
 export const ChatContent = () => {
     const [messages, setMessages] = useState([]);
@@ -16,7 +17,7 @@ export const ChatContent = () => {
     const [users, setUsers] = useState({});
     const [isDeleting, setIsDeleting] = useState(false);
     const [isInitialLoad, setIsInitialLoad] = useState(true);
-    
+
     const scrollAreaRef = useRef(null);
     const presenceIntervalRef = useRef(null);
     const searchParams = useSearchParams();
@@ -64,7 +65,7 @@ export const ChatContent = () => {
         const userData = {
             userId,
             username,
-            avatarUrl: localStorage.getItem('chatUserImage')||`https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
+            avatarUrl: localStorage.getItem('chatUserImage') || `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
             lastSeen: serverTimestamp()
         };
 
@@ -159,6 +160,7 @@ export const ChatContent = () => {
             }));
 
             await deleteDoc(doc(db, "chatRooms", roomCode));
+            deleteFolderContents(`images/${roomCode}`);
             router.push('/');
         } catch (error) {
             console.error("Error deleting room:", error);
@@ -166,6 +168,23 @@ export const ChatContent = () => {
             setIsDeleting(false);
         }
     }, [roomCode, router]);
+
+    const deleteFolderContents = async (folderPath) => {
+        const storage = getStorage();
+        const folderRef = ref(storage, folderPath);
+
+        try {
+            const listResult = await listAll(folderRef);
+
+            // Loop through all files in the folder and delete them
+            const deletePromises = listResult.items.map((fileRef) => deleteObject(fileRef));
+            await Promise.all(deletePromises);
+
+            console.log("Folder contents deleted successfully.");
+        } catch (error) {
+            console.error("Error deleting folder contents:", error);
+        }
+    };
 
     if (!currentUser) return null;
 
@@ -189,6 +208,7 @@ export const ChatContent = () => {
                 <ChatInput
                     onSendMessage={handleSendMessage}
                     disabled={isSending}
+                    roomCode={roomCode}
                 />
             </Card>
         </div>

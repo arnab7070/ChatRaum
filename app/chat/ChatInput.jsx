@@ -7,7 +7,7 @@ import { ImageUploader } from "./ImageUploader";
 // Constant for maximum textarea height
 const MAX_TEXTAREA_HEIGHT = 200;
 
-export const ChatInput = memo(({ onSendMessage, disabled }) => {
+export const ChatInput = memo(({ onSendMessage, disabled, roomCode }) => {
     const [message, setMessage] = useState("");
     const textareaRef = useRef(null);
     const isSubmitting = useRef(false);
@@ -66,7 +66,7 @@ export const ChatInput = memo(({ onSendMessage, disabled }) => {
                             spellCheck="true"
                         />
                         <div className="absolute top-1/2 right-1 transform -translate-y-1/2">
-                            <ImageUploader onSendMessage={onSendMessage} />
+                            <ImageUploader onSendMessage={onSendMessage} roomCode={roomCode}/>
                         </div>
                     </div>
                     <Button
