@@ -46,7 +46,7 @@ export default function Home() {
     if (!username) {
       setError("Please enter a username");
       setLoading(false);
-      if(isJoinDialogOpen) setIsJoinDialogOpen(false);
+      if (isJoinDialogOpen) setIsJoinDialogOpen(false);
       return false;
     }
 
@@ -61,7 +61,7 @@ export default function Home() {
       username,
       userId,
       color: userColor,
-      avatarUrl: localStorage.getItem('chatUserImage')||`https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
+      avatarUrl: localStorage.getItem('chatUserImage') || `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
       lastSeen: serverTimestamp()
     };
 
@@ -71,7 +71,7 @@ export default function Home() {
 
     // Save to Firestore
     try {
-      if(roomCode) await setDoc(doc(db, `chatRooms/${roomCode}/users`, userId), userData);
+      if (roomCode) await setDoc(doc(db, `chatRooms/${roomCode}/users`, userId), userData);
     } catch (error) {
       console.log(error)
     }
@@ -105,11 +105,11 @@ export default function Home() {
       setLoading(false);
       return;
     }
-    
+
     // Check if room exists
     const roomRef = doc(db, 'chatRooms', roomCode);
     const roomSnap = await getDoc(roomRef);
-    
+
     if (!roomSnap.exists()) {
       setError("Room not found");
       setIsJoinDialogOpen(false);
@@ -117,7 +117,7 @@ export default function Home() {
       return;
     }
     await new Promise(resolve => setTimeout(resolve, 3000));
-    
+
     if (await saveUserData(roomCode)) {
       setLoading(false);
       router.push(`/chat?roomCode=${roomCode}`);
@@ -149,6 +149,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
+
       <div className="fixed top-4 right-4">
         <ModeToggle />
       </div>
@@ -166,11 +167,14 @@ export default function Home() {
         animate="visible"
         className="w-full max-w-md"
       >
-        <Card className="w-full">
+        <svg className="fixed blur-xl" height={400} width={400} viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <path fill="#FF0066" d="M18.7,-14.9C28.2,-3,42.6,5,43.1,12.6C43.6,20.3,30.2,27.6,17.5,32.1C4.8,36.6,-7.2,38.2,-14,33.3C-20.9,28.4,-22.6,17,-23.6,7C-24.6,-3,-25,-11.6,-20.9,-22.3C-16.9,-32.9,-8.4,-45.7,-1.9,-44.2C4.6,-42.7,9.2,-26.8,18.7,-14.9Z" transform="translate(100 100)" />
+        </svg>
+        <Card className="w-full bg-white/5 backdrop-blur-xl">
           <CardHeader>
             <CardTitle className="text-2xl text-center flex items-center justify-center gap-2">
               <MessageSquare className="w-6 h-6" />
-              Welcome to ChatRoom
+              Welcome to ChatRaum
             </CardTitle>
             <CardDescription className="text-center">
               Create or join a room to start chatting
@@ -194,8 +198,8 @@ export default function Home() {
                   className="flex-1"
                 />
                 {username && (
-                <UserProfileImage username={username} userId={localStorage.getItem('chatUserId') || ''} />
-              )}
+                  <UserProfileImage username={username} userId={localStorage.getItem('chatUserId') || ''} />
+                )}
               </div>
             </motion.div>
 
@@ -239,7 +243,7 @@ export default function Home() {
                 />
               </div>
               <Button onClick={joinRoom} disabled={roomCode.length != 6 || loading} className="w-full">
-                {loading ? <Hourglass className="w-4 h-4 mr-2" /> :<LogIn className="w-4 h-4 mr-2" />}
+                {loading ? <Hourglass className="w-4 h-4 mr-2" /> : <LogIn className="w-4 h-4 mr-2" />}
                 {loading ? 'Please wait...' : 'Join Room'}
               </Button>
             </div>
